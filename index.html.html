@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tarot da Estrela</title>
+    <style>
+        /* Estilização Geral e Fundo */
+        body {
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background: radial-gradient(circle, #1a0a2e 0%, #05020a 100%);
+            color: white;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* Estrelas de Fundo */
+        .stars {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background: transparent url('https://www.transparenttextures.com/patterns/stardust.png') repeat;
+            z-index: -1;
+            animation: moveStars 100s linear infinite;
+        }
+
+        @keyframes moveStars {
+            from { background-position: 0 0; }
+            to { background-position: 1000px 1000px; }
+        }
+
+        /* Container da Carta */
+        .card-container {
+            width: 320px;
+            height: 520px;
+            perspective: 1000px;
+            cursor: pointer;
+        }
+
+        /* A Carta */
+        .card {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 25px rgba(138, 43, 226, 0.4);
+            border-radius: 15px;
+        }
+
+        /* Classe de Giro */
+        .card.flipped {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            border-radius: 15px;
+            border: 2px solid #daa520;
+            padding: 25px;
+            box-sizing: border-box;
+            text-align: center;
+        }
+
+        /* Frente - Identidade Fixa "Tarot da Estrela" */
+        .card-front {
+            background: linear-gradient(135deg, #2e1065, #4c1d95);
+            background-image: url('https://www.transparenttextures.com/patterns/sacred-geometry.png');
+        }
+
+        .card-front h2 {
+            font-size: 1.8rem;
+            color: #daa520;
+            text-shadow: 0 0 10px rgba(218, 165, 32, 0.8);
+            margin: 15px 0;
+        }
+
+        /* Verso - Onde o Arcano Aleatório Aparece */
+        .card-back {
+            background: #0f172a;
+            transform: rotateY(180deg);
+            background-image: url('https://www.transparenttextures.com/patterns/dark-matter.png');
+        }
+
+        .card-back h2 {
+            color: #60a5fa;
+            margin-bottom: 10px;
+            font-size: 1.6rem;
+        }
+
+        .card-back p {
+            font-size: 1.1rem;
+            line-height: 1.4;
+            min-height: 80px; /* Garante alinhamento */
+        }
+
+        .icon-star {
+            font-size: 50px;
+            color: #fbbf24;
+            margin-bottom: 15px;
+            filter: drop-shadow(0 0 10px #fbbf24);
+        }
+
+        /* Botão do WhatsApp */
+        .btn-whatsapp {
+            margin-top: 25px;
+            padding: 12px 25px;
+            background-color: #25d366;
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-weight: bold;
+            transition: transform 0.3s;
+            box-shadow: 0 4px 15px rgba(37, 211, 102, 0.4);
+        }
+
+        .btn-whatsapp:hover {
+            transform: scale(1.05);
+            background-color: #1ebe57;
+        }
+
+        .instruction {
+            position: absolute;
+            bottom: 30px;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            opacity: 0.6;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="stars"></div>
+
+    <div class="card-container" onclick="handleFlip()">
+        <div class="card" id="tarotCard">
+            <!-- Lado da Frente (Fixo) -->
+            <div class="card-front">
+                <div class="icon-star">✧</div>
+                <h2>Tarot da Estrela</h2>
+                <p>Mentalize sua pergunta e toque para revelar</p>
+            </div>
+
+            <!-- Lado de Trás (Sorteado via JS) -->
+            <div class="card-back">
+                <div class="icon-star">★</div>
+                <h2 id="cardTitle">A Estrela</h2>
+                <p id="cardMeaning">Esperança, inspiração e caminhos iluminados guiam o seu momento.</p>
+                
+                <a id="waLink" href="https://wa.me/558896714892" class="btn-whatsapp" target="_blank">
+                    Marcar Atendimento
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <div class="instruction">Toque na carta</div>
+
+    <script>
+        // Lista completa dos 22 Arcanos Maiores
+        const arcanos = [
+            { n: "O Louco", m: "Novos começos, liberdade e saltos de fé. O universo te convida a arriscar." },
+            { n: "O Mago", m: "Poder de manifestação e habilidade. Você tem as ferramentas para vencer." },
+            { n: "A Sacerdotisa", m: "Intuição e mistério. Ouça sua voz interior e aguarde o momento certo." },
+            { n: "A Imperatriz", m: "Abundância, criatividade e fertilidade. Momento de colher e prosperar." },
+            { n: "O Imperador", m: "Estrutura, autoridade e estabilidade. Foque na organização hoje." },
+            { n: "O Hierofante", m: "Sabedoria, tradição e ensinamentos. Busque conselhos de quem sabe mais." },
+            { n: "Os Enamorados", m: "Escolhas do coração, parcerias e harmonia. Siga sua verdade afetiva." },
+            { n: "O Carro", n: "Determinação e vitória rápida. Mantenha as rédeas e siga em frente." },
+            { n: "A Justiça", m: "Equilíbrio, verdade e causas resolvidas. O que é justo prevalecerá." },
+            { n: "O Eremita", m: "Introspecção e luz interior. Um tempo de solitude trará as respostas." },
+            { n: "A Roda da Fortuna", m: "Mudanças inevitáveis e ciclos. O destino está em movimento a seu favor." },
+            { n: "A Força", m: "Coragem, paciência e autocontrole. Você é mais forte do que imagina." },
+            { n: "O Pendurado", m: "Nova perspectiva e pausa. Às vezes é preciso parar para ver melhor." },
+            { n: "A Morte", m: "Transformação profunda e renascimento. Deixe o velho ir para o novo chegar." },
+            { n: "A Temperança", m: "Equilíbrio, cura e paciência. Misture as energias com calma e moderação." },
+            { n: "O Diabo", m: "Apegos, sombras e desejos. Cuidado com o que te prende ou te ilude." },
+            { n: "A Torre", m: "Mudança súbita e libertação. O que não é sólido cai para a verdade surgir." },
+            { n: "A Estrela", m: "Esperança, inspiração e fé renovada. O céu está iluminando seu caminho." },
+            { n: "A Lua", m: "Intuição, sonhos e sombras. Nem tudo é o que parece, confie no seu instinto." },
+            { n: "O Sol", m: "Clareza, alegria e sucesso. A luz da verdade brilha intensamente agora." },
+            { n: "O Julgamento", m: "Despertar, chamado e avaliação. É hora de seguir uma nova vocação." },
+            { n: "O Mundo", m: "Conclusão, plenitude e sucesso total. Você alcançou o seu objetivo." }
+        ];
+
+        function handleFlip() {
+            const card = document.getElementById('tarotCard');
+            const isFlipped = card.classList.contains('flipped');
+
+            if (!isFlipped) {
+                // Sorteia uma carta antes de virar
+                const sorteio = arcanos[Math.floor(Math.random() * arcanos.length)];
+                
+                // Atualiza o texto do verso
+                document.getElementById('cardTitle').innerText = sorteio.n;
+                document.getElementById('cardMeaning').innerText = sorteio.m;
+
+                // Atualiza o link do WhatsApp para já avisar qual carta saiu
+                const linkWA = document.getElementById('waLink');
+                const mensagem = encodeURIComponent(`Olá! Tirei a carta "${sorteio.n}" no site Tarot da Estrela e gostaria de um atendimento.`);
+                linkWA.href = `https://wa.me/558896714892?text=${mensagem}`;
+
+                card.classList.add('flipped');
+            } else {
+                // Se já estiver virada, volta para a frente
+                card.classList.remove('flipped');
+            }
+        }
+    </script>
+
+</body>
+</html>
